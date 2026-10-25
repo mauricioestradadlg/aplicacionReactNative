@@ -1,0 +1,58 @@
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { AppState } from 'react-native';
+import { ApiError, API_URL, escucharSesionExpirada, guardarToken, hayToken, peticionSistema, restaurarToken } from '@/services/api';
+
+export type Usuario = { id: number; usuario: string; nombre_completo: string; correo: string; rol: string };
+type Session = { usuario: Usuario | null; cargando: boolean; error: string; comprobarSesion: () => Promise<void>; cerrarSesion: () => Promise<void> };
+const Context = createContext<Session | null>(null);
+
+export function SessionProvider({ children }: { children: ReactNode }) {
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState('');
+  const epoch = useRef(0);
+  const pending = useRef<AbortController | null>(null);
+  const comprobarSesion = useCallback(async () => {
+    const generation = ++epoch.current;
+    pending.current?.abort();
+    const request = new AbortController();
+    pending.current = request;
+    setError('');
+    try {
+      if (!API_URL || !hayToken()) { setUsuario(null); return; }
+      const result = await peticionSistema<{ usuario: Usuario }>('yo/', { signal: request.signal });
+      if (!request.signal.aborted && generation === epoch.current) setUsuario(result.usuario);
+    } catch (err) {
+      if (request.signal.aborted || generation !== epoch.current) return;
+      if (err instanceof ApiError && err.status === 401) { await guardarToken(null); setUsuario(null); }
+      else setError(err instanceof Error ? err.message : 'No se pudo verificar la sesión.');
+    } finally { if (generation === epoch.current) setCargando(false); }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    restaurarToken().then(() => { if (active) void comprobarSesion(); }).catch(() => {
+      if (active) { setError('No se pudo acceder al almacenamiento seguro del dispositivo.'); setCargando(false); }
+    });
+    const stop = escucharSesionExpirada(() => { ++epoch.current; pending.current?.abort(); setUsuario(null); setCargando(false); void guardarToken(null).catch(() => {}); });
+    const subscription = AppState.addEventListener('change', state => { if (state === 'active' && hayToken()) void comprobarSesion(); });
+    return () => { active = false; pending.current?.abort(); stop(); subscription.remove(); };
+  }, [comprobarSesion]);
+
+  const cerrarSesion = useCallback(async () => {
+    ++epoch.current;
+    pending.current?.abort();
+    await peticionSistema('salir/', { metodo: 'POST' });
+    ++epoch.current;
+    pending.current?.abort();
+    await guardarToken(null);
+    setUsuario(null);
+  }, []);
+  return <Context.Provider value={{ usuario, cargando, error, comprobarSesion, cerrarSesion }}>{children}</Context.Provider>;
+}
+
+export function useSession() {
+  const session = useContext(Context);
+  if (!session) throw new Error('Falta SessionProvider.');
+  return session;
+}
