@@ -8,6 +8,8 @@ class SistemaCsrfMiddleware(CsrfViewMiddleware):
     MOBILE_AUTH_PATHS = frozenset({
         "/api/sistema/movil/login/",
         "/api/sistema/movil/verificar/",
+        "/api/sistema/app/movil/login/",
+        "/api/sistema/app/movil/registro/",
     })
 
     def process_view(self, request, callback, callback_args, callback_kwargs):

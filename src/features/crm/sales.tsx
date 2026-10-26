@@ -103,7 +103,7 @@ export function GestionVentasScreen() {
     }
     return mutation.mutate(keyProspecto(p), `gestion-ventas/${p.id}/liquidacion/`, { fuente: p.fuente, ...payment, fecha_liquidacion: payment.proyecto_liquidado ? payment.fecha_liquidacion : null }, page.recargar);
   }
-  return <PagedList title="Gestión de ventas" subtitle="Importes, anticipos y liquidaciones en pesos mexicanos." items={page.datos?.clientes || []} keyExtractor={keyProspecto}
+  return <PagedList title="Cobros de ventas" subtitle="Importes, anticipos y liquidaciones en pesos mexicanos." items={page.datos?.clientes || []} keyExtractor={keyProspecto}
     renderItem={p => <PaymentCard person={p} busy={Boolean(mutation.busy) || page.cargando} onSave={guardar} />}
     header={<><Search value={page.search} onChange={page.setSearch} onSearch={page.buscar} /><Feedback error={mutation.error} success={mutation.success} />
       {page.datos ? <View style={styles.row}><Stat label="Ventas" value={String(page.datos.totales?.ventas ?? 0)} /><Stat label="Liquidadas" value={String(page.datos.totales?.liquidados ?? 0)} /><Stat label="Pendientes" value={String(page.datos.totales?.pendientes ?? 0)} /></View> : null}</>}

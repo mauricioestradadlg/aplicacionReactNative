@@ -47,8 +47,9 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "configurar:local": "node scripts/configurar-local.mjs",
+    "diagnosticar:android": "node scripts/diagnosticar-android.mjs",
     "test:cotizaciones": "node --test scripts/test-cotizaciones.mjs",
-    "test": "node --test scripts/test-cotizaciones.mjs scripts/tests-api.mjs"
+    "test": "node --test scripts/test-cotizaciones.mjs scripts/tests-api.mjs scripts/test-configurar-local.mjs scripts/test-diagnosticar-android.mjs"
   },
   "private": true
 }

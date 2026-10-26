@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from .views import contacto, health, lead_magnet
 from .resenas_view import registrar_resena, verificar_correo_resena, listar_resenas_publicas
@@ -35,6 +35,8 @@ from .sistemaServidor.sistema_auth import (
 )
 
 urlpatterns = [
+    path("sistema/app/", include("movil.urls_auth")),
+    path("sistema/app/", include("movil.urls_business")),
     path("contacto/", contacto, name="contacto"),
     path("lead-magnet/", lead_magnet, name="lead_magnet"),
     path("health/", health, name="health"),

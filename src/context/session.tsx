@@ -1,8 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
-import { ApiError, API_URL, escucharSesionExpirada, guardarToken, hayToken, peticionSistema, restaurarToken } from '@/services/api';
+import { ApiError, API_URL, escucharAccesoActualizado, escucharSesionExpirada, guardarToken, hayToken, peticionSistema, restaurarToken } from '@/services/api';
 
-export type Usuario = { id: number; usuario: string; nombre_completo: string; correo: string; rol: string };
+export type Rol = 'admin' | 'desarrollador' | 'crm' | 'finanzas';
+export type Organizacion = { id: string; nombre: string; descripcion: string };
+export type Usuario = {
+  id: number; usuario: string; nombre_completo: string; correo: string; telefono: string;
+  rol: Rol | null; organizacion: Organizacion | null;
+  estado_acceso: 'sin_organizacion' | 'pendiente' | 'aceptado' | 'rechazado' | 'eliminado';
+};
 type Session = { usuario: Usuario | null; cargando: boolean; error: string; comprobarSesion: () => Promise<void>; cerrarSesion: () => Promise<void> };
 const Context = createContext<Session | null>(null);
 
@@ -35,8 +41,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (active) { setError('No se pudo acceder al almacenamiento seguro del dispositivo.'); setCargando(false); }
     });
     const stop = escucharSesionExpirada(() => { ++epoch.current; pending.current?.abort(); setUsuario(null); setCargando(false); void guardarToken(null).catch(() => {}); });
+    const stopAccess = escucharAccesoActualizado(() => { void comprobarSesion(); });
     const subscription = AppState.addEventListener('change', state => { if (state === 'active' && hayToken()) void comprobarSesion(); });
-    return () => { active = false; pending.current?.abort(); stop(); subscription.remove(); };
+    return () => { active = false; pending.current?.abort(); stop(); stopAccess(); subscription.remove(); };
   }, [comprobarSesion]);
 
   const cerrarSesion = useCallback(async () => {

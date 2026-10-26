@@ -6,6 +6,7 @@ import { Button, Card, Chip, Empty, Field, Notice, Pagination, Row, Screen, Sect
 import { useSession } from '@/context/session';
 import { useConsulta } from '@/hooks/use-consulta';
 import { peticionSistema } from '@/services/api';
+import { puedeAcceder } from '@/services/access';
 
 type Estado = 'por_hacer' | 'en_progreso' | 'completado';
 type Proyecto = {
@@ -46,7 +47,7 @@ function Progreso({ completados, total }: { completados: number; total: number }
 
 export function ProyectosScreen({ gestion = false }: { gestion?: boolean }) {
   const { usuario } = useSession();
-  const admin = usuario?.rol === 'admin';
+  const admin = puedeAcceder(usuario, 'proyectos');
   const [busqueda, setBusqueda] = useState('');
   const [buscar, setBuscar] = useState('');
   const [pagina, setPagina] = useState(1);
@@ -54,7 +55,7 @@ export function ProyectosScreen({ gestion = false }: { gestion?: boolean }) {
   const { datos, cargando, error, recargar } = useConsulta<ProyectosRespuesta>(admin ? `proyectos/${gestion ? 'gestion' : 'pendientes'}/?${params}` : null);
   const filtrar = () => { setPagina(1); setBuscar(busqueda.trim()); };
   return <Screen title={gestion ? 'Gestión de proyectos' : 'Requerimientos'} subtitle={gestion ? 'Organiza el trabajo y sigue el avance de cada proyecto.' : 'Define el alcance de tus ventas cerradas para comenzar su desarrollo.'} refreshing={cargando} onRefresh={recargar}>
-    {!admin ? <Notice message="Solo administradores pueden consultar y modificar los proyectos." /> : <>
+    {!admin ? <Notice message="Necesitas el rol de administrador o desarrollador para acceder a Proyectos." /> : <>
       <Card>
         <Field label="Buscar proyecto o cliente" placeholder="Nombre, negocio o teléfono" value={busqueda} onChangeText={setBusqueda} maxLength={100} returnKeyType="search" onSubmitEditing={filtrar} />
         <Button label="Buscar" onPress={filtrar} disabled={cargando} variant="secondary" />
@@ -64,9 +65,9 @@ export function ProyectosScreen({ gestion = false }: { gestion?: boolean }) {
       {datos ? <>
         <SectionTitle>{datos.total} {datos.total === 1 ? 'proyecto' : 'proyectos'} {gestion ? 'en gestión' : 'pendientes'}</SectionTitle>
         {datos.proyectos.length === 0 ? <Empty message={buscar ? 'No se encontraron proyectos para esta búsqueda.' : gestion ? 'Todavía no hay proyectos con requerimientos definidos.' : 'No hay ventas cerradas pendientes de requerimientos.'} /> : datos.proyectos.map((proyecto) => <Card key={`${proyecto.fuente}-${proyecto.id}`}>
-          <Row><Chip label={servicio(proyecto.servicio_recomendado)} /><Chip label={proyecto.origen || (proyecto.fuente === 'whatsapp' ? 'WhatsApp' : 'Email Marketing')} /></Row>
+          <Row><Chip label="Venta registrada" /><Chip label={proyecto.origen || 'Registro directo'} /></Row>
           <Text style={styles.projectTitle}>{proyecto.negocio || proyecto.nombre || 'Proyecto sin nombre'}</Text>
-          <Text style={sharedStyles.body}>{proyecto.nombre || 'Cliente sin nombre'}</Text>
+          <Text style={sharedStyles.body} numberOfLines={3}>{servicio(proyecto.servicio_recomendado)}</Text>
           <Text style={sharedStyles.caption}>{proyecto.telefono || 'Sin teléfono registrado'}</Text>
           {gestion ? <Progreso completados={proyecto.completados} total={proyecto.total_requerimientos} /> : null}
           <Button label={gestion ? 'Abrir tablero' : 'Definir requerimientos'} onPress={() => router.push(detalleRuta(proyecto.fuente, proyecto.id, gestion))} />
@@ -80,7 +81,7 @@ export function ProyectosScreen({ gestion = false }: { gestion?: boolean }) {
 
 export function ProyectoDetalleScreen({ fuente, id, tablero = false }: { fuente: string; id: string; tablero?: boolean }) {
   const { usuario } = useSession();
-  const admin = usuario?.rol === 'admin';
+  const admin = puedeAcceder(usuario, 'proyectos');
   const raiz = `proyectos/${encodeURIComponent(fuente)}/${encodeURIComponent(id)}`;
   const { datos, cargando, error, recargar } = useConsulta<DetalleRespuesta>(admin && fuente && id ? `${raiz}/${tablero ? 'kanban' : 'requerimientos'}/` : null);
   const [filas, setFilas] = useState<Borrador[]>([{ clave: 0, titulo: '', descripcion: '' }]);
@@ -118,7 +119,7 @@ export function ProyectoDetalleScreen({ fuente, id, tablero = false }: { fuente:
   }
   const requerimientos = datos?.requerimientos || [];
   return <Screen title={tablero ? 'Tablero del proyecto' : 'Definir requerimientos'} subtitle={tablero ? 'Cada cambio se guarda en el sistema compartido.' : 'Captura los requerimientos para comenzar la gestión.'} refreshing={cargando} onRefresh={guardando ? undefined : recargar}>
-    {!admin ? <Notice message="Solo administradores pueden consultar y modificar los proyectos." /> : <>
+    {!admin ? <Notice message="Necesitas el rol de administrador o desarrollador para acceder a Proyectos." /> : <>
       {error || errorGuardado ? <Notice message={errorGuardado || error} /> : null}
       {aviso ? <Notice message={aviso} tone="success" /> : null}
       {cargando && !datos ? <ActivityIndicator color={colors.primary} /> : null}
@@ -126,9 +127,9 @@ export function ProyectoDetalleScreen({ fuente, id, tablero = false }: { fuente:
       {tablero && !datos && !cargando ? <Button label="Definir requerimientos" onPress={() => router.replace(detalleRuta(fuente, id))} variant="secondary" /> : null}
       {datos ? <>
         <Card>
-          <Chip label={servicio(datos.proyecto.servicio_recomendado)} />
+          <Chip label="Proyecto de software" />
           <Text style={styles.projectTitle}>{datos.proyecto.negocio || datos.proyecto.nombre || 'Proyecto'}</Text>
-          <Text style={sharedStyles.body}>{datos.proyecto.nombre || 'Cliente sin nombre'}</Text>
+          <Text style={sharedStyles.body}>{servicio(datos.proyecto.servicio_recomendado)}</Text>
           {tablero ? <Progreso completados={requerimientos.filter((item) => item.estado === 'completado').length} total={requerimientos.length} /> : null}
         </Card>
         {tablero ? <>
