@@ -5,6 +5,7 @@ import { Button, Card, Empty, Field, Notice, Pagination, Screen, colors } from '
 import { useSession } from '@/context/session';
 import { useConsulta } from '@/hooks/use-consulta';
 import { peticionSistema } from '@/services/api';
+import { puedeAcceder } from '@/services/access';
 
 export type Page = { pagina: number; paginas: number; total: number; totales?: Record<string, number> };
 export type Prospecto = {
@@ -34,7 +35,7 @@ export const money = (value: number | string | null | undefined) => new Intl.Num
   style: 'currency', currency: 'MXN',
 }).format(Number(value) || 0);
 export const keyProspecto = (p: Prospecto) => `${p.fuente}:${p.id}`;
-export const servicio = (s: string) => ({ 'landing-page': 'Landing Page', 'sitio-web': 'Sitio Web', 'diseno-web': 'Diseño Web', otro: 'Otro' })[s] || 'Sin definir';
+export const servicio = (s: string) => ({ 'landing-page': 'Landing Page', 'sitio-web': 'Sitio Web', 'diseno-web': 'Diseño Web', otro: 'Otro' })[s] || s || 'Sin definir';
 export const errorMessage = (e: unknown) => e instanceof Error ? e.message : 'No se pudo completar la solicitud.';
 
 export function useMutation() {
@@ -61,9 +62,10 @@ export function usePage<T>(path: string) {
   const [search, setSearch] = useState('');
   const [filtro, setFiltro] = useState('');
   const [extra, setExtra] = useState('');
-  const query = useConsulta<T>(usuario?.rol === 'admin' ? `${path}?pagina=${pagina}&buscar=${encodeURIComponent(filtro)}${extra}` : null);
+  const permitido = puedeAcceder(usuario, path === 'gestion-ventas/' ? 'finanzas' : 'crm');
+  const query = useConsulta<T>(permitido ? `${path}?pagina=${pagina}&buscar=${encodeURIComponent(filtro)}${extra}` : null);
   function buscar() { setPagina(1); setFiltro(search.trim().slice(0, 100)); }
-  return { ...query, pagina, setPagina, search, setSearch, buscar, setExtra, isAdmin: usuario?.rol === 'admin' };
+  return { ...query, pagina, setPagina, search, setSearch, buscar, setExtra, isAdmin: permitido };
 }
 
 export function Feedback({ error, success }: { error?: string; success?: string }) {
@@ -72,14 +74,14 @@ export function Feedback({ error, success }: { error?: string; success?: string 
 
 export function Identity({ person }: { person: { nombre: string; negocio: string; telefono?: string; correo?: string; whatsapp?: string } }) {
   return <View style={styles.identity}><Text style={styles.name}>{person.nombre || 'Sin nombre'}</Text>
-    {person.negocio ? <Text style={styles.body}>{person.negocio}</Text> : null}
+    {person.negocio && person.negocio !== person.nombre ? <Text style={styles.body}>{person.negocio}</Text> : null}
     <Text selectable style={styles.muted}>{person.telefono || person.whatsapp || person.correo || 'Sin contacto'}</Text>
     {person.correo && (person.telefono || person.whatsapp) ? <Text selectable style={styles.muted}>{person.correo}</Text> : null}
   </View>;
 }
 
 export function Search({ value, onChange, onSearch }: { value: string; onChange: (s: string) => void; onSearch: () => void }) {
-  return <Card><Field label="Buscar por nombre, contacto o negocio" placeholder="Escribe tu búsqueda" value={value} onChangeText={onChange} maxLength={100} returnKeyType="search" onSubmitEditing={onSearch} />
+  return <Card><Field label="Buscar por nombre, correo o teléfono" placeholder="Escribe tu búsqueda" value={value} onChangeText={onChange} maxLength={100} returnKeyType="search" onSubmitEditing={onSearch} />
     <Button label="Buscar" onPress={onSearch} variant="secondary" /></Card>;
 }
 
@@ -91,7 +93,7 @@ export function PagedList<T>({ title, subtitle, items, keyExtractor, renderItem,
   const list = useRef<FlatList<T>>(null);
   useEffect(() => { if (scrollToTopKey) list.current?.scrollToOffset({ offset: 0, animated: true }); }, [scrollToTopKey]);
   return <Screen title={title} subtitle={subtitle} scroll={false}>
-    {!isAdmin ? <Notice message="Esta sección requiere permisos de administrador." tone="info" /> : <FlatList ref={list}
+    {!isAdmin ? <Notice message="Tu cuenta no tiene acceso a esta sección." tone="info" /> : <FlatList ref={list}
       style={{ flex: 1 }} data={items} keyExtractor={keyExtractor} renderItem={({ item }) => <View style={styles.item}>{renderItem(item)}</View>}
       contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled" refreshing={Boolean(refreshing || loading)} onRefresh={() => void recargar()}
       ListHeaderComponent={<View style={styles.header}>{header}{error ? <Notice message={error} tone="error" /> : null}

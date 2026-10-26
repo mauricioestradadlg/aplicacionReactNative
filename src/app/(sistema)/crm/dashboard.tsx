@@ -1,1 +1,1 @@
-export { DashboardCrmScreen as default } from '@/features/crm/screens';
+export { DashboardComercialScreen as default } from '@/features/crm/clientes';

@@ -5,9 +5,10 @@ ALLOWED_HOSTS = ["testserver", "localhost", "127.0.0.1"]
 ROOT_URLCONF = "servidor.urls"
 INSTALLED_APPS = [
     "django.contrib.admin", "django.contrib.auth", "django.contrib.contenttypes",
-    "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles", "server",
+    "django.contrib.sessions", "django.contrib.messages", "django.contrib.staticfiles", "server", "movil",
 ]
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}}
+DATABASE_ROUTERS = ["movil.router.MovilRouter"]
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "server.mobile_security.SistemaCsrfMiddleware",

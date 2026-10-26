@@ -1,83 +1,104 @@
-# Proyectos MEG · Aplicación móvil
+# Gestión de proyectos para equipos de software
 
-Adaptación del sistema interno del ZIP a React Native, Expo SDK 58 y Expo Router. Android, iOS y web comparten las reglas del backend Django y la misma base PostgreSQL/Neon. Los archivos adjuntos se utilizaron como referencia de implementación y esquema.
+Aplicación móvil Expo SDK 58 / React Native con backend Django. Cada empresa administra sus clientes, proyectos y finanzas dentro de su organización. La aplicación tiene cuentas propias y una base Neon independiente de la del sistema web original.
 
-## Iniciar en tu computadora
+## Funciones
 
-La configuración local ya quedó preparada con `EXPO_PUBLIC_API_URL=http://192.168.1.77:8000`. La configuración privada del backend del ZIP se conservó en `backend/servidor/.env`, excluido de Git, con hosts y orígenes de desarrollo local. La conexión a PostgreSQL y nueve tablas existentes se verificaron en solo lectura.
+| Área | Comportamiento |
+| --- | --- |
+| Cuenta | Registro, acceso con usuario/correo/teléfono y contraseña, edición de datos y cambio de contraseña. |
+| Organización | Crear empresa e invitar usuarios registrados, buscar empresa y solicitar acceso, estados pendiente/rechazado/eliminado. |
+| Administración | Aprobar/rechazar solicitudes, asignar rol, editar organización, buscar y retirar miembros. |
+| CRM | Dashboard de ventas y conversión; registro/edición de clientes y prospectos; búsqueda por nombre, correo o teléfono y filtro de venta. |
+| Proyectos | Ventas pendientes de requerimientos, captura de alcance y tablero por hacer/en progreso/completado. |
+| Finanzas | Anticipos y liquidaciones por fecha, dashboard mensual, gastos con historial, resultados, balance y flujo de efectivo. |
 
-En una terminal, desde la raíz del proyecto:
+| Rol | Acceso |
+| --- | --- |
+| Administrador | Todos los módulos, solicitudes y configuración de organización. |
+| Desarrollador | Proyectos y configuración de su cuenta. |
+| CRM | Clientes, ventas, dashboard CRM y configuración de su cuenta. |
+| Finanzas | Cobros, gastos, reportes y configuración de su cuenta. |
+
+Las cuentas pendientes, rechazadas o eliminadas conservan acceso a sus datos personales. Los permisos y la organización se verifican en el servidor en cada solicitud. La navegación se actualiza cuando cambia el acceso. El CRM móvil presenta únicamente el flujo comercial del diagrama; las rutas antiguas del backend web se conservan separadas.
+
+## Preparación local
+
+Desde la raíz del proyecto:
 
 ```powershell
+npm.cmd install
+python -m venv backend/.venv
+.\backend\.venv\Scripts\python.exe -m pip install -r backend/requirements.txt
+```
+
+Si faltan los archivos de configuración, copia `.env.example` a `.env` y `backend/servidor/.env.example` a `backend/servidor/.env`. Conserva cualquier configuración privada existente.
+
+Configura `NEON_MOBILE_DATABASE_URL` en el archivo del servidor con una base Neon nueva y `SECRET_KEY` con una clave aleatoria de al menos 50 caracteres. Instala el esquema siguiendo [backend/BASE_MOVIL.md](backend/BASE_MOVIL.md). La app no utiliza las cuentas ni los datos del sistema web y no necesita Resend para iniciar sesión.
+
+En este workspace la base `aplicacion_movil`, su rol dedicado y las nueve tablas ya están creados y la conexión privada está configurada. Reinicia Django para cargarla; puedes comenzar creando tu cuenta desde la aplicación.
+
+```powershell
+.\backend\.venv\Scripts\python.exe backend/servidor/manage.py migrate movil --database=movil
+.\backend\.venv\Scripts\python.exe scripts/verificar-base-movil.py
 .\backend\.venv\Scripts\python.exe backend/servidor/manage.py runserver 0.0.0.0:8000
 ```
 
-En otra terminal, desde la misma carpeta:
+En otra terminal:
 
 ```powershell
-npm start
+npx.cmd expo start --clear
 ```
 
-Usa un teléfono en la misma red Wi-Fi y abre el proyecto con un cliente compatible con Expo SDK 58. Los módulos utilizados están incluidos en Expo Go; un development build permite probar tu propio binario y es necesario al añadir módulos nativos que no estén incluidos. El backend debe permanecer encendido. El firewall de Windows debe permitir el puerto 8000 en tu red privada.
+Después crea tu cuenta desde la aplicación y elige crear una organización o solicitar acceso a una existente. No se incluyen credenciales ni datos de demostración en la base.
 
-Para navegador, abre la opción web de Expo. Usa `http://192.168.1.77:PUERTO` tanto para el frontend como para el backend configurado: las cookies web son del mismo sitio. Si usas `http://localhost:PUERTO`, configura temporalmente `EXPO_PUBLIC_API_URL=http://localhost:8000` y reinicia Expo; no uses esa URL en un teléfono físico. Los orígenes locales 8081 y 8090 ya están permitidos en Django.
+## Conexión desde cada dispositivo
 
-Si cambia la IP de la computadora:
+`.env` contiene únicamente el origen HTTP del backend, sin `/api` al final:
 
-```powershell
-npm run configurar:local
-# O indica una IP concreta:
-npm run configurar:local -- 192.168.1.77
+```dotenv
+EXPO_PUBLIC_API_URL=http://IP_LAN_DE_LA_PC:8000
+EXPO_PUBLIC_API_URL_WEB=http://localhost:8000
+EXPO_PUBLIC_API_URL_ANDROID=http://10.0.2.2:8000
 ```
 
-Incluye la nueva IP en `ALLOWED_HOSTS` de `backend/servidor/.env`, actualiza el origen web en `CORS_ALLOWED_ORIGINS` si lo usas y reinicia Django y Expo. Android Emulator usa `http://10.0.2.2:8000`; `localhost` dentro de un teléfono apunta al propio teléfono.
+Para un teléfono físico, elimina `EXPO_PUBLIC_API_URL_ANDROID` y usa la IP LAN de la computadora en `EXPO_PUBLIC_API_URL`. Ambos dispositivos deben estar en la misma red. Si cambias de red, `npm.cmd run configurar:local` actualiza las direcciones locales conservando las variables privadas y orígenes existentes; no crea ni migra la base. `npm.cmd run diagnosticar:android` verifica la conexión desde Android mediante adb.
 
-## Backend y base compartida
+La variante web se abre en `http://localhost:8081`. Ese origen debe figurar en `CORS_ALLOWED_ORIGINS` del servidor. Los endpoints móviles están bajo `/api/sistema/app/`; la dirección de un backend anterior sin estas rutas no sirve para esta versión.
 
-Se incluyó el backend original en `backend/`, con dos rutas de autenticación móvil y compatibilidad Bearer para las rutas privadas existentes. Debes ejecutar esta versión actualizada del backend para usar la app; la versión original del ZIP no tiene `/api/sistema/movil/`.
+Si aparece «El servidor tardó demasiado», la petición de acceso llegó al límite de 60 segundos sin completarse. Metro (puerto 8081) y Django (puerto 8000) deben estar ejecutándose a la vez. Mantén Django abierto en una terminal y Expo en otra, con los comandos de preparación anteriores.
 
-Para instalar desde cero o en un entorno virtual, consulta [backend/README.md](backend/README.md). Conserva los valores originales de `NEON_DATABASE_URL`, `SECRET_KEY` y Resend. El archivo `databasesistemaInterno.txt` es referencia de esquema: no necesitas volver a ejecutar ese SQL, crear otra base ni copiar los datos.
+Para localizar el problema, ejecuta `npm.cmd run diagnosticar:android`: primero comprueba Django desde la PC, después el permiso de red local de Expo Go y finalmente la conexión desde el dispositivo por adb. Para una compilación propia, usa `npm.cmd run diagnosticar:android -- --package identificador.de.la.app`; si hay varios dispositivos agrega `--serial SERIAL`. Si Django no responde, inicia `runserver 0.0.0.0:8000`; si responde solo desde la PC, comprueba la dirección y la conexión del emulador. `10.0.2.2` permite al emulador acceder a la PC; un teléfono físico necesita la IP LAN. Recarga completamente la app después de cambiar `.env`.
 
-La app solo conoce la URL HTTP del backend. No agregues contraseñas de PostgreSQL ni claves de correo a variables `EXPO_PUBLIC_*`. La web conserva sus cookies HttpOnly y protección CSRF; Android/iOS almacenan la sesión en SecureStore. El cierre de sesión revoca el token en la misma base. No se usan registros de demostración.
+En Android 17 (API 37), el acceso a la red local puede estar bloqueado para la app aunque las consultas de adb respondan: `nc` se ejecuta con el usuario shell, que tiene otros permisos. La app comprueba y solicita `ACCESS_LOCAL_NETWORK` antes de conectar con el backend LAN en desarrollo. Acepta el diálogo de Android. Si el permiso se denegó o el diálogo ya no aparece, abre **Ajustes > Aplicaciones > Expo Go > Permisos > Dispositivos cercanos / Red local**, permite el acceso y vuelve a abrir el proyecto. El diagnóstico detecta este caso; conceder el permiso no requiere cambiar de IP ni aumentar el timeout. Expo Go y las compilaciones debug de React Native ya declaran el permiso. Consulta la [documentación de Android sobre acceso a la red local](https://developer.android.com/privacy-and-security/local-network-permission).
 
-## Funciones replicadas
+Si el servidor responde pero el acceso sigue fallando, ejecuta `.\backend\.venv\Scripts\python.exe scripts/verificar-base-movil.py` para verificar Neon y sus tablas en solo lectura. Las comprobaciones HTTP sin sesión no validan la conexión con la base. La conexión móvil a PostgreSQL tiene un límite de 8 segundos por destino para evitar esperas indefinidas al conectar; ese valor no limita la duración total del login.
 
-| Área | Funciones |
-| --- | --- |
-| Acceso | Usuario/contraseña, código por correo, restauración y revocación de sesión, permisos por rol. |
-| CRM | Dashboard, embudo, métricas por canal y costos publicitarios configurables localmente. |
-| Marketing | Lead Magnet, seguimiento Email Marketing, alta/edición de prospectos, clientes potenciales y marca de cita agendada. |
-| Ventas | Cierre, cotización enviada, conversión, importes, anticipo y liquidación con fechas. |
-| Cotizaciones | Importar prospecto, servicios/extras, descuentos, dominio, IVA incluido, anticipos, mantenimiento y PDF para guardar/compartir. El PDF no se guarda en la base, igual que en la web. |
-| Proyectos | Proyectos pendientes y en gestión, captura inicial de requerimientos y tablero por estado. |
-| Finanzas | Dashboard mensual, gastos operativos e historial, estado de resultados, balance y flujo de efectivo, con las advertencias de alcance del sistema original. |
-| Reseñas | Consulta, revisión, aprobación y rechazo con las condiciones originales del servidor. |
-
-Los módulos administrativos requieren `rol=admin`, igual que en Django. Los listados incluyen búsqueda, paginación y recarga; los errores del servidor se muestran en pantalla. El seguimiento de correo registra acciones ya realizadas, igual que el sistema web; no envía campañas automáticamente.
+Android/iOS guardan el token en SecureStore y envían Bearer. El navegador utiliza cookie HttpOnly y CSRF. Las sesiones móviles usan una clave de almacenamiento y cookie propias. Las compilaciones de producción requieren una URL HTTPS.
 
 ## Validación
 
 ```powershell
 npx.cmd expo lint
 npx.cmd tsc --noEmit
-npm test
-.\backend\.venv\Scripts\python.exe backend/servidor/manage.py test server --settings=servidor.test_settings --noinput
-.\backend\.venv\Scripts\python.exe scripts/verificar-backend.py
+npm.cmd test
+.\backend\.venv\Scripts\python.exe backend/servidor/manage.py test server movil --settings=servidor.mobile_test_settings --noinput
+.\backend\.venv\Scripts\python.exe backend/servidor/manage.py makemigrations movil --check --dry-run --settings=servidor.mobile_test_settings
 ```
 
-Se aprobaron 20 pruebas de API/cotizaciones y 127 de Django con Django 6.1, la versión original del ZIP, en `backend/.venv`. Las pruebas automatizadas del backend usan mocks y configuración aislada; el último comando verifica la conexión y tablas reales mediante una transacción de solo lectura, sin consultar datos personales. Se conservaron los requisitos originales de Python.
+Las pruebas Django usan bases SQLite en memoria y configuración aislada que no lee `.env`. Cubren aislamiento entre organizaciones, roles, registro, sesiones, aprobación y eliminación de miembros, el flujo venta→proyecto→cobro→reporte, validación monetaria y gastos históricos. No consultan ni modifican Neon. Las pruebas Node cubren el transporte HTTP, la configuración local y los cálculos anteriores de cotizaciones conservados en el repositorio.
 
-También se validaron la exportación web y los bundles Android/iOS con Hermes, además del acceso web a 390 px sin desbordamiento horizontal. Eso verifica compilación y renderizado; la prueba completa de acceso requiere tu cuenta, el código real recibido por correo y tu dispositivo. No se inició sesión con credenciales reales ni se modificaron registros durante la verificación.
+Los reportes conservan el alcance original: muestran cobros y costos registrados, y señalan los importes o datos contables que faltan. No infieren saldos bancarios, impuestos ni patrimonio.
 
 ## Estructura
 
-- `src/app/`: rutas Expo Router y protección de acceso.
-- `src/features/`: pantallas de CRM, proyectos, finanzas y cotizaciones.
-- `src/components/meg.tsx`: componentes móviles compartidos.
-- `src/services/api.ts`: transporte HTTP, CSRF web y almacenamiento seguro nativo.
-- `src/context/session.tsx`: ciclo de sesión y revalidación al volver a la app.
-- `backend/`: Django y documentación de integración con tu web.
+- `src/app/`: rutas y protección con Expo Router.
+- `src/features/account/`: cuentas, organizaciones, accesos y miembros.
+- `src/features/crm/clientes.tsx`: clientes y dashboard comercial.
+- `src/features/projects/` y `src/features/finance/`: gestión operativa.
+- `src/services/api.ts`: API móvil independiente, CSRF y SecureStore.
+- `backend/servidor/movil/`: modelos, migración y API por organización.
+- [backend/README.md](backend/README.md): configuración y contrato HTTP.
+- [backend/BASE_MOVIL.md](backend/BASE_MOVIL.md): esquema e instalación en Neon.
 
-Para producción, publica Django con HTTPS y cambia `EXPO_PUBLIC_API_URL` al dominio de tu API. Las compilaciones de producción rechazan HTTP. No se realizó ningún despliegue ni compilación EAS en la nube.
-
-Referencias consultadas: [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/), [Expo Router](https://docs.expo.dev/router/introduction/), [SecureStore](https://docs.expo.dev/versions/v58.0.0/sdk/securestore/), [Print](https://docs.expo.dev/versions/v58.0.0/sdk/print/).
+Referencias: [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/), [rutas protegidas](https://docs.expo.dev/router/advanced/protected/), [SecureStore](https://docs.expo.dev/versions/v58.0.0/sdk/securestore/).

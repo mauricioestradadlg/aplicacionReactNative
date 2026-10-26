@@ -6,6 +6,7 @@ import { Button, Card, Chip, Empty, Field, Notice, Row, Screen, SectionTitle, St
 import { useSession } from '@/context/session';
 import { useConsulta } from '@/hooks/use-consulta';
 import { peticionSistema } from '@/services/api';
+import { puedeAcceder } from '@/services/access';
 
 type Importe = string | number | null;
 type Gasto = { id: string; concepto: string; monto_mensual: string };
@@ -73,7 +74,7 @@ function Periodo({ value, onChange }: { value: string; onChange: (value: string)
 function Advertencias({ advertencias, ventas }: { advertencias: string[]; ventas: number }) {
   return <>
     {advertencias.map((mensaje) => <Notice key={mensaje} message={mensaje} tone="info" />)}
-    {ventas > 0 ? <Button label="Completar importes de ventas" variant="secondary" onPress={() => router.push('/crm/ventas' as Href)} /> : null}
+    {ventas > 0 ? <Button label="Completar importes de ventas" variant="secondary" onPress={() => router.push('/finanzas/cobros' as Href)} /> : null}
   </>;
 }
 
@@ -86,13 +87,13 @@ function FilaImporte({ label, valor, total = false }: { label: string; valor: Im
 
 export function DashboardFinanzasScreen() {
   const { usuario } = useSession();
-  const admin = usuario?.rol === 'admin';
+  const admin = puedeAcceder(usuario, 'finanzas');
   const [periodo, setPeriodo] = useState(actual);
   const { datos, cargando, error, recargar } = useConsulta<DashboardRespuesta>(admin ? `finanzas/dashboard/?periodo=${encodeURIComponent(periodo)}` : null);
   const resumen = datos?.periodo === periodo ? datos.resumen : null;
   const maxGrafica = Math.max(1, ...(datos?.tendencia || []).flatMap((mes) => [Number(mes.cobros_mes) || 0, Number(mes.gastos_mes) || 0]));
   return <Screen title="Dashboard financiero" subtitle="Tus cobros, gastos y resultados del mes en un solo lugar." refreshing={cargando} onRefresh={recargar}>
-    {!admin ? <Notice message="Solo administradores pueden consultar los indicadores financieros." /> : <>
+    {!admin ? <Notice message="Necesitas acceso a Finanzas para consultar los indicadores financieros." /> : <>
       <Periodo value={periodo} onChange={setPeriodo} />
       {error ? <><Notice message={error} /><Button label="Reintentar" variant="secondary" onPress={recargar} /></> : null}
       {cargando && !resumen ? <ActivityIndicator color={colors.primary} /> : null}
@@ -150,7 +151,7 @@ export function DashboardFinanzasScreen() {
 
 export function GastosScreen() {
   const { usuario } = useSession();
-  const admin = usuario?.rol === 'admin';
+  const admin = puedeAcceder(usuario, 'finanzas');
   const { datos, cargando, error, recargar } = useConsulta<GastosRespuesta>(admin ? 'finanzas/gastos-operativos/' : null);
   const [borradores, setBorradores] = useState<Record<string, BorradorGasto>>({});
   const [nuevo, setNuevo] = useState<BorradorGasto>({ concepto: '', monto_mensual: '' });
@@ -180,7 +181,7 @@ export function GastosScreen() {
     finally { bloqueo.current = false; setGuardando(''); }
   }
   return <Screen title="Gastos operativos" subtitle="Administra el costo mensual de operar tu negocio." refreshing={cargando} onRefresh={guardando ? undefined : recargar}>
-    {!admin ? <Notice message="Solo administradores pueden consultar y modificar los gastos operativos." /> : <>
+    {!admin ? <Notice message="Necesitas acceso a Finanzas para consultar y modificar los gastos operativos." /> : <>
       <Notice message="Los cambios aplican al mes en curso y a los siguientes. El historial de meses anteriores se conserva." tone="info" />
       {error || errorGuardado ? <Notice message={errorGuardado || error} /> : null}
       {error ? <Button label="Reintentar consulta" variant="secondary" onPress={recargar} /> : null}
@@ -209,14 +210,14 @@ export function GastosScreen() {
 
 export function ReportesScreen() {
   const { usuario } = useSession();
-  const admin = usuario?.rol === 'admin';
+  const admin = puedeAcceder(usuario, 'finanzas');
   const [periodo, setPeriodo] = useState(actual);
   const [tipo, setTipo] = useState<TipoReporte>('estado-resultados');
   const params = new URLSearchParams({ periodo, tipo });
   const { datos, cargando, error, recargar } = useConsulta<ReporteRespuesta>(admin ? `finanzas/reportes/?${params}` : null);
   const vigente = datos?.periodo === periodo && datos?.tipo === tipo ? datos : null;
   return <Screen title="Reportes financieros" subtitle="Consulta los movimientos e indicadores registrados en tu sistema." refreshing={cargando} onRefresh={recargar}>
-    {!admin ? <Notice message="Solo administradores pueden consultar los reportes financieros." /> : <>
+    {!admin ? <Notice message="Necesitas acceso a Finanzas para consultar los reportes financieros." /> : <>
       <Row>{reportes.map((reporte) => <Chip key={reporte.tipo} label={reporte.titulo} selected={tipo === reporte.tipo} onPress={() => setTipo(reporte.tipo)} />)}</Row>
       <Periodo value={periodo} onChange={setPeriodo} />
       {error ? <><Notice message={error} /><Button label="Reintentar" variant="secondary" onPress={recargar} /></> : null}

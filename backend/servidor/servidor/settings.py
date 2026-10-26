@@ -5,6 +5,8 @@ from urllib.parse import unquote, urlsplit
 
 from dotenv import load_dotenv
 
+from movil.database_config import configuracion_neon_movil
+
 
 # =========================================
 # RUTAS BASE
@@ -74,6 +76,7 @@ INSTALLED_APPS = [
 
     # Aplicación propia
     "server",
+    "movil",
 
 ]
 
@@ -196,6 +199,14 @@ if NEON_DATABASE_URL:
         "OPTIONS": {"sslmode": "require"},
         "CONN_MAX_AGE": 0,
     }
+
+# Base independiente para la aplicación de organizaciones. No reutilizar la URL
+# del negocio: tampoco hay fallback a SQLite ni a la conexión `neon` original.
+NEON_MOBILE_DATABASE_URL = os.getenv("NEON_MOBILE_DATABASE_URL", "").strip()
+mobile_database_config = configuracion_neon_movil(NEON_MOBILE_DATABASE_URL, NEON_DATABASE_URL)
+if mobile_database_config:
+    DATABASES["movil"] = mobile_database_config
+DATABASE_ROUTERS = ["movil.router.MovilRouter"]
 
 
 # =========================================
