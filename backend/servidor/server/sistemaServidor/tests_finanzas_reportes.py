@@ -195,7 +195,7 @@ class ReportesImportesTests(SimpleTestCase):
                 datos, _ = self.filas(tipo, {**self.resumen, 'ventas_sin_importes': 2})
                 self.assertEqual(datos['ventas_sin_importes'], 2)
                 self.assertIn('2 ventas cerradas', datos['advertencias'][0])
-                self.assertIn('Gestión de Ventas', datos['advertencias'][0])
+                self.assertNotIn('Gestión de Ventas', datos['advertencias'][0])
 
     def test_sin_historial_conserva_cobros_pero_no_inventa_egresos_ni_resultados(self):
         pendientes = {

@@ -55,7 +55,7 @@ function FormularioCliente({ cliente, onSave, onCancel }: { cliente: Cliente | n
     {datos.hubo_venta && <>
       <Field label="Monto de la venta (MXN) *" value={datos.monto_venta} onChangeText={v => cambiar('monto_venta', v)} keyboardType="decimal-pad" maxLength={13} editable={!guardando} placeholder="0.00" />
       <Field label="Descripción del servicio *" value={datos.descripcion_servicio} onChangeText={v => cambiar('descripcion_servicio', v)} maxLength={2000} multiline editable={!guardando} placeholder="Ej. Aplicación de inventario para Android y iOS" />
-      <Text style={sharedStyles.caption}>La venta aparecerá en Proyectos. Los cobros se registran en Finanzas.</Text>
+      <Text style={sharedStyles.caption}>La venta se registra como cobrada en su totalidad y aparecerá en Proyectos y Finanzas.</Text>
     </>}
     <Notice message={error} />
     <Button label="Guardar cambios" icon="checkmark-outline" onPress={() => void guardar()} loading={guardando} />
@@ -116,7 +116,7 @@ export function DashboardComercialScreen() {
     {datos && <>
       <Row><Stat label="Contactos registrados" value={datos.total_clientes} /><Stat label="Prospectos" value={datos.prospectos} /></Row>
       <Row><Stat label="Ventas cerradas" value={datos.total_ventas} /><Stat label="Conversión" value={`${Number(datos.conversion_pct).toFixed(1)}%`} /></Row>
-      <Card><Text style={sharedStyles.caption}>VALOR TOTAL DE VENTAS · MXN</Text><Text style={styles.amount}>{dinero(datos.monto_ventas)}</Text><Text style={sharedStyles.caption}>Importe contratado. Los pagos recibidos se consultan en Finanzas.</Text></Card>
+      <Card><Text style={sharedStyles.caption}>VALOR TOTAL DE VENTAS · MXN</Text><Text style={styles.amount}>{dinero(datos.monto_ventas)}</Text><Text style={sharedStyles.caption}>Ventas cobradas en su totalidad.</Text></Card>
       <Card><SectionTitle>Ventas por mes</SectionTitle>{datos.tendencia.map(mes => <View key={mes.mes} style={{ gap: 8 }}><Row><Text style={sharedStyles.body}>{mes.mes}</Text><Text style={sharedStyles.caption}>{mes.ventas} ventas · {dinero(mes.monto)}</Text></Row><View style={styles.track}><View style={[styles.bar, { width: `${Math.max(0, Number(mes.monto) / maximo * 100)}%` }]} /></View></View>)}</Card>
       <SectionTitle>Ventas recientes</SectionTitle>
       {datos.ventas_recientes.length ? datos.ventas_recientes.map(cliente => <Card key={cliente.id}><Text style={sharedStyles.title}>{cliente.nombre}</Text><Text style={sharedStyles.body}>{cliente.descripcion_servicio}</Text><Text style={styles.amount}>{dinero(cliente.monto_venta)}</Text></Card>) : <Empty message="Las ventas aparecerán aquí cuando registres la primera." />}

@@ -11,14 +11,14 @@ Aplicación móvil Expo SDK 58 / React Native con backend Django. Cada empresa a
 | Administración | Aprobar/rechazar solicitudes, asignar rol, editar organización, buscar y retirar miembros. |
 | CRM | Dashboard de ventas y conversión; registro/edición de clientes y prospectos; búsqueda por nombre, correo o teléfono y filtro de venta. |
 | Proyectos | Ventas pendientes de requerimientos, captura de alcance y tablero por hacer/en progreso/completado. |
-| Finanzas | Anticipos y liquidaciones por fecha, dashboard mensual, gastos con historial, resultados, balance y flujo de efectivo. |
+| Finanzas | Ventas cobradas completas en su fecha de venta, dashboard mensual, gastos con historial, resultados, balance y flujo de efectivo. |
 
 | Rol | Acceso |
 | --- | --- |
 | Administrador | Todos los módulos, solicitudes y configuración de organización. |
 | Desarrollador | Proyectos y configuración de su cuenta. |
 | CRM | Clientes, ventas, dashboard CRM y configuración de su cuenta. |
-| Finanzas | Cobros, gastos, reportes y configuración de su cuenta. |
+| Finanzas | Indicadores, gastos, reportes y configuración de su cuenta. |
 
 Las cuentas pendientes, rechazadas o eliminadas conservan acceso a sus datos personales. Los permisos y la organización se verifican en el servidor en cada solicitud. La navegación se actualiza cuando cambia el acceso. El CRM móvil presenta únicamente el flujo comercial del diagrama; las rutas antiguas del backend web se conservan separadas.
 
@@ -49,6 +49,14 @@ En otra terminal:
 ```powershell
 npx.cmd expo start --clear
 ```
+
+Si los cambios aparecen en web pero Android muestra una versión anterior, detén las sesiones anteriores de Expo con `Ctrl+C`, conserva Django encendido y cierra Expo Go completamente. Desde esta raíz, vuelve a abrir el proyecto en el emulador con:
+
+```powershell
+npm.cmd run android:limpio
+```
+
+Este comando abre Expo Go y reconstruye la caché de Metro. Comprueba que la terminal muestre esta carpeta en `Starting project at` y que aparezca `Android Bundled` al cargar la app. En un teléfono físico usa `npx.cmd expo start --go --clear` y escanea el QR recién generado, en lugar de abrir una entrada anterior de proyectos recientes. La web y Expo Go cargan el código por separado; una recarga de la web no recarga Android.
 
 Después crea tu cuenta desde la aplicación y elige crear una organización o solicitar acceso a una existente. No se incluyen credenciales ni datos de demostración en la base.
 
@@ -86,7 +94,7 @@ npm.cmd test
 .\backend\.venv\Scripts\python.exe backend/servidor/manage.py makemigrations movil --check --dry-run --settings=servidor.mobile_test_settings
 ```
 
-Las pruebas Django usan bases SQLite en memoria y configuración aislada que no lee `.env`. Cubren aislamiento entre organizaciones, roles, registro, sesiones, aprobación y eliminación de miembros, el flujo venta→proyecto→cobro→reporte, validación monetaria y gastos históricos. No consultan ni modifican Neon. Las pruebas Node cubren el transporte HTTP, la configuración local y los cálculos anteriores de cotizaciones conservados en el repositorio.
+Las pruebas Django usan bases SQLite en memoria y configuración aislada que no lee `.env`. Cubren aislamiento entre organizaciones, roles, registro, sesiones, aprobación y eliminación de miembros, ventas cobradas por el 100 % de su importe una sola vez, proyectos, reportes, validación monetaria y gastos históricos. La migración a pago completo se prueba preservando importes y fechas conocidas. No consultan ni modifican Neon. Las pruebas Node cubren el transporte HTTP, la configuración local y los cálculos anteriores de cotizaciones conservados en el repositorio.
 
 Los reportes conservan el alcance original: muestran cobros y costos registrados, y señalan los importes o datos contables que faltan. No infieren saldos bancarios, impuestos ni patrimonio.
 

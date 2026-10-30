@@ -13,8 +13,7 @@ export type Prospecto = {
   servicio_recomendado: string; origen: string; fecha_registro?: string;
   respondio_mensajes?: boolean; brindo_nombre?: boolean; cita_agendada_en?: string | null;
   cita_completada?: boolean; cotizacion_enviada?: boolean; hubo_venta?: boolean;
-  proyecto_liquidado?: boolean; importe_total?: string | null; importe_anticipo?: string | null;
-  fecha_anticipo?: string | null; fecha_liquidacion?: string | null;
+  importe_total?: string | null;
 };
 export type Lead = {
   id: string; nombre: string; correo: string; whatsapp: string; negocio: string; plantilla: string;
@@ -62,7 +61,7 @@ export function usePage<T>(path: string) {
   const [search, setSearch] = useState('');
   const [filtro, setFiltro] = useState('');
   const [extra, setExtra] = useState('');
-  const permitido = puedeAcceder(usuario, path === 'gestion-ventas/' ? 'finanzas' : 'crm');
+  const permitido = puedeAcceder(usuario, 'crm');
   const query = useConsulta<T>(permitido ? `${path}?pagina=${pagina}&buscar=${encodeURIComponent(filtro)}${extra}` : null);
   function buscar() { setPagina(1); setFiltro(search.trim().slice(0, 100)); }
   return { ...query, pagina, setPagina, search, setSearch, buscar, setExtra, isAdmin: permitido };

@@ -18,7 +18,7 @@ export function ModuleCards({ modules }: { modules: Module[] }) {
 const modulos: (Module & { area: Area })[] = [
   { area: 'crm', title: 'CRM', description: 'Prospectos, clientes y nuevas ventas.', icon: 'people-outline', href: '/crm' as Href },
   { area: 'proyectos', title: 'Proyectos', description: 'Del primer requerimiento a la entrega.', icon: 'layers-outline', href: '/proyectos' as Href, color: '#7452C8' },
-  { area: 'finanzas', title: 'Finanzas', description: 'Cobros, gastos y resultados de tu equipo.', icon: 'wallet-outline', href: '/finanzas' as Href, color: '#168564' },
+  { area: 'finanzas', title: 'Finanzas', description: 'Gastos, reportes y resultados de tu equipo.', icon: 'wallet-outline', href: '/finanzas' as Href, color: '#168564' },
 ];
 
 export function HomeScreen() {
@@ -30,7 +30,7 @@ export function HomeScreen() {
   const estado = usuario?.estado_acceso;
   async function salir() { setLoading(true); setError(''); try { await cerrarSesion(); } catch (err) { setError(err instanceof Error ? err.message : 'No se pudo cerrar la sesión.'); } finally { setLoading(false); } }
   return <View style={styles.home}><LinearGradient colors={['#0A162C', '#143C6D']} style={styles.homeHeader}><SafeAreaView edges={['top', 'left', 'right']}>
-    <View style={styles.topbar}><Text style={styles.logo}>PROYECTOS<Text style={{ color: '#74AFFF' }}>.</Text></Text><View style={styles.role}><View style={styles.onlineDot} /><Text style={styles.roleText}>{activo ? nombresRol[usuario?.rol || ''] : pendiente ? 'Acceso pendiente' : 'Tu cuenta'}</Text></View></View>
+    <View style={styles.topbar}><Text style={styles.logo}>Proyectos <Text style={{ color: '#74AFFF' }}>MEG</Text></Text><View style={styles.role}><View style={styles.onlineDot} /><Text style={styles.roleText}>{activo ? nombresRol[usuario?.rol || ''] : pendiente ? 'Acceso pendiente' : 'Tu cuenta'}</Text></View></View>
     <Text style={styles.greeting}>Hola, {usuario?.nombre_completo.split(' ')[0] || usuario?.usuario}</Text><Text style={styles.welcome}>{activo ? usuario?.organizacion?.nombre : 'Tu próximo proyecto empieza aquí.'}</Text>
     <Text style={styles.date}>{new Intl.DateTimeFormat('es-MX', { dateStyle: 'full', timeZone: 'America/Mexico_City' }).format(new Date())}</Text>
   </SafeAreaView></LinearGradient>
@@ -64,7 +64,6 @@ export function ModuleScreen({ area }: { area: Area }) {
     ],
     finanzas: [
       { title: 'Dashboard financiero', description: 'Ingresos, egresos y resultados del mes.', icon: 'bar-chart-outline', href: '/finanzas/dashboard' as Href },
-      { title: 'Cobros de ventas', description: 'Registra anticipos y liquidaciones.', icon: 'cash-outline', href: '/finanzas/cobros' as Href },
       { title: 'Gastos operativos', description: 'Administra tus gastos recurrentes.', icon: 'receipt-outline', href: '/finanzas/gastos' as Href },
       { title: 'Reportes financieros', description: 'Resultados, balance y flujo de efectivo.', icon: 'documents-outline', href: '/finanzas/reportes' as Href },
     ],

@@ -1,0 +1,48 @@
+Herramienta: imagegen integrada. Fondo transparente: false.
+
+Use case: infographic-diagram.
+Create ONE finished Spanish-language infographic poster for the software project PROYECTOS MEG, suitable for a university report, exporting or sharing. This is a new bitmap image, not a screenshot, not a device mockup. Very high-resolution portrait document, ideally 2160 x 3840, generous margins. Professional, polished, calm editorial information design. White/light-gray background, deep navy title, royal blue and restrained teal accents, extremely legible dark body text. Use a carefully aligned two-column grid: left column about 55% wide for all 20 functional requirements, right column about 45% for all 13 nonfunctional requirements. Elegant navy header across the top; small rounded blue numbered identifier chips; compact bullet points with readable sans-serif typography, consistent spacing and line wrapping. Keep decorations minimal so all text fits comfortably. The content itself is the main visual. No photos, mascots, invented logos, charts, illustrations, watermark or extra slogans. Include every one of the 33 requirements below exactly once, in order within its own column. Do not shorten, paraphrase, omit, duplicate or add requirements. In particular the financial rule must state 100% payment and no advances. Preserve correct Spanish spelling, accents, IDs and all words. Typeset the complete exact copy below; prioritize readable large text and adjust canvas/layout to fit the complete contents without clipping.
+
+Main title: "PROYECTOS MEG"
+Subtitle: "REQUERIMIENTOS DEL PROYECTO"
+Left column heading: "REQUERIMIENTOS FUNCIONALES"
+Right column heading: "REQUERIMIENTOS NO FUNCIONALES"
+
+EXACT LEFT COLUMN COPY:
+RF-01. Mostrar el logo y el nombre de Proyectos MEG en el inicio de sesión y la pantalla principal.
+RF-02. Permitir registrar cuentas con nombre completo, usuario, correo, teléfono y contraseña.
+RF-03. Permitir iniciar sesión mediante usuario, correo o teléfono, y cerrar la sesión.
+RF-04. Permitir actualizar los datos personales y cambiar la contraseña.
+RF-05. Permitir crear organizaciones y editar sus datos.
+RF-06. Permitir buscar una organización y solicitar acceso a ella.
+RF-07. Permitir al administrador aprobar o rechazar solicitudes y asignar los roles de administrador, CRM, desarrollador y finanzas.
+RF-08. Permitir consultar los integrantes de una organización y retirar su acceso.
+RF-09. Mostrar y habilitar los módulos correspondientes al rol del usuario.
+RF-10. Permitir registrar y editar clientes y prospectos con sus datos de contacto y comentarios.
+RF-11. Permitir buscar clientes por nombre, correo o teléfono y filtrarlos según tengan una venta registrada.
+RF-12. Registrar las ventas con el monto completo, la descripción del servicio y la fecha de venta.
+RF-13. Considerar cada venta cobrada al 100 %, contabilizándola una sola vez y sin registrar anticipos.
+RF-14. Mostrar indicadores comerciales de clientes, ventas, conversión e importes vendidos.
+RF-15. Incorporar automáticamente las ventas al módulo de proyectos como pendientes de requerimientos.
+RF-16. Permitir capturar los requerimientos de cada proyecto con título y descripción.
+RF-17. Permitir gestionar los requerimientos mediante los estados Por hacer, En progreso y Completado, mostrando el avance del proyecto.
+RF-18. Permitir registrar y actualizar gastos operativos mensuales, conservando su historial.
+RF-19. Mostrar indicadores financieros de ingresos, gastos, resultado operativo, margen, tendencias y comparaciones mensuales.
+RF-20. Permitir consultar por periodo el estado de resultados, el balance general y el flujo de efectivo, señalando la información contable pendiente.
+
+EXACT RIGHT COLUMN COPY:
+RNF-01. Compatibilidad: mantener un comportamiento consistente en Android, iOS y web mediante una base de código compartida.
+RNF-02. Diseño adaptable: ajustar las pantallas a distintos tamaños de dispositivos, considerando el teclado y las áreas seguras.
+RNF-03. Usabilidad: presentar navegación clara, formularios comprensibles y mensajes en español.
+RNF-04. Accesibilidad: incorporar etiquetas en campos, botones identificables y avisos compatibles con lectores de pantalla.
+RNF-05. Seguridad: proteger las contraseñas mediante hash y gestionar sesiones con vencimiento y revocación.
+RNF-06. Comunicación segura: utilizar HTTPS en producción y almacenamiento seguro de las credenciales de sesión.
+RNF-07. Privacidad: impedir que una organización consulte o modifique información de otra y mantener las credenciales privadas en el servidor.
+RNF-08. Integridad: validar los datos, utilizar operaciones atómicas y realizar cálculos monetarios con precisión decimal.
+RNF-09. Rendimiento: utilizar paginación, listas optimizadas y consultas agregadas para evitar cargas innecesarias.
+RNF-10. Manejo de errores: mostrar estados de carga, mensajes comprensibles y opciones de reintento ante fallos de conexión.
+RNF-11. Mantenibilidad: organizar el código por módulos y controlar los cambios de la base de datos mediante migraciones.
+RNF-12. Verificación: contar con pruebas automatizadas, revisión de tipos y análisis estático del código.
+RNF-13. Localización: mostrar importes en pesos mexicanos y manejar las fechas conforme a la zona horaria de Ciudad de México.
+
+Quality constraints: Each complete entry must be fully contained on the poster, the IDs RF-01 to RF-20 and RNF-01 to RNF-13 must all be present, and every required line must be legible at the full resolution. Use no supplementary footer text or duplicated headings. This image is a requirements document presented as an attractive infographic.

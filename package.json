@@ -42,6 +42,7 @@
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
+    "android:limpio": "expo start --android --go --clear",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",

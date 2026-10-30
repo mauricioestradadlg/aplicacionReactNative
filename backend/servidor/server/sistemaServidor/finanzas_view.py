@@ -335,8 +335,7 @@ def construir_reporte(periodo, tipo, resumen):
                             'Los gastos y resultados que dependen de ellos se muestran como pendientes.')
     if resumen['ventas_sin_importes']:
         advertencias.append(
-            f"Hay {resumen['ventas_sin_importes']} ventas cerradas con importes o fechas de pago pendientes. "
-            'Completa sus datos en Gestión de Ventas para incluir todos sus cobros.'
+            f"Hay {resumen['ventas_sin_importes']} ventas cerradas con importes o fechas de pago pendientes."
         )
     return {
         'ok': True,

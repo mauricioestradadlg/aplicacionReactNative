@@ -95,8 +95,7 @@ def construir_dashboard_finanzas(meses):
         )
     if actual['ventas_sin_importes']:
         advertencias.append(
-            f"Hay {actual['ventas_sin_importes']} ventas cerradas con importes o fechas de pago pendientes. "
-            'Completa sus datos en Gestión de Ventas para incluir todos sus cobros.'
+            f"Hay {actual['ventas_sin_importes']} ventas cerradas con importes o fechas de pago pendientes."
         )
     comparativo = None
     if anterior is not None:

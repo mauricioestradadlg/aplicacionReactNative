@@ -12,19 +12,19 @@ type Importe = string | number | null;
 type Gasto = { id: string; concepto: string; monto_mensual: string };
 type BorradorGasto = { concepto: string; monto_mensual: string };
 type GastosRespuesta = { gastos: Gasto[]; total_mensual: string; mensaje?: string };
-type Resumen = { cobros_mes: Importe; gastos_mes: Importe; resultado_operativo: Importe; anticipos_mes: Importe; saldos_mes: Importe; margen_operativo_pct: Importe; cobertura_gastos_pct: Importe; variacion_cobros_pct: Importe };
+type Resumen = { cobros_mes: Importe; gastos_mes: Importe; resultado_operativo: Importe; margen_operativo_pct: Importe; cobertura_gastos_pct: Importe; variacion_cobros_pct: Importe };
 type Mes = { mes: string; cobros_mes: Importe; gastos_mes: Importe; resultado_operativo: Importe };
 type DashboardRespuesta = {
   periodo: string; resumen: Resumen; tendencia: Mes[];
   comparativo: { periodo: string; cobros_mes: Importe; gastos_mes: Importe; resultado_operativo: Importe } | null;
   gastos: { id: string; concepto: string; monto: Importe }[];
-  advertencias: string[]; alcance: string; ventas_sin_importes: number;
+  advertencias: string[]; alcance: string;
   inicio_historial_gastos: string | null; actualizado_en: string;
 };
 type TipoReporte = 'estado-resultados' | 'balance-general' | 'flujo-efectivo';
 type ReporteRespuesta = {
   tipo: TipoReporte; periodo: string; alcance: string; pendientes: string;
-  advertencias: string[]; ventas_sin_importes: number; inicio_historial_gastos: string | null;
+  advertencias: string[]; inicio_historial_gastos: string | null;
   lineas: { clave: string; concepto: string; importe: Importe; tipo: string }[];
 };
 
@@ -71,10 +71,9 @@ function Periodo({ value, onChange }: { value: string; onChange: (value: string)
   </Card>;
 }
 
-function Advertencias({ advertencias, ventas }: { advertencias: string[]; ventas: number }) {
+function Advertencias({ advertencias }: { advertencias: string[] }) {
   return <>
     {advertencias.map((mensaje) => <Notice key={mensaje} message={mensaje} tone="info" />)}
-    {ventas > 0 ? <Button label="Completar importes de ventas" variant="secondary" onPress={() => router.push('/finanzas/cobros' as Href)} /> : null}
   </>;
 }
 
@@ -92,14 +91,14 @@ export function DashboardFinanzasScreen() {
   const { datos, cargando, error, recargar } = useConsulta<DashboardRespuesta>(admin ? `finanzas/dashboard/?periodo=${encodeURIComponent(periodo)}` : null);
   const resumen = datos?.periodo === periodo ? datos.resumen : null;
   const maxGrafica = Math.max(1, ...(datos?.tendencia || []).flatMap((mes) => [Number(mes.cobros_mes) || 0, Number(mes.gastos_mes) || 0]));
-  return <Screen title="Dashboard financiero" subtitle="Tus cobros, gastos y resultados del mes en un solo lugar." refreshing={cargando} onRefresh={recargar}>
+  return <Screen title="Dashboard financiero" subtitle="Ventas cobradas en su totalidad, gastos y resultados del mes." refreshing={cargando} onRefresh={recargar}>
     {!admin ? <Notice message="Necesitas acceso a Finanzas para consultar los indicadores financieros." /> : <>
       <Periodo value={periodo} onChange={setPeriodo} />
       {error ? <><Notice message={error} /><Button label="Reintentar" variant="secondary" onPress={recargar} /></> : null}
       {cargando && !resumen ? <ActivityIndicator color={colors.primary} /> : null}
       {datos && resumen ? <>
         <Row>
-          <Stat label="Ingresos cobrados" value={importe(resumen.cobros_mes)} detail="Anticipos y saldos recibidos" />
+          <Stat label="Ingresos cobrados" value={importe(resumen.cobros_mes)} detail="Importe completo de las ventas del mes" />
           <Stat label="Gastos operativos" value={importe(resumen.gastos_mes)} detail="Importes mensuales registrados" />
         </Row>
         <Row>
@@ -107,14 +106,10 @@ export function DashboardFinanzasScreen() {
           <Stat label="Margen parcial" value={porcentaje(resumen.margen_operativo_pct)} detail="Resultado ÷ cobros" />
         </Row>
         <Row>
-          <Stat label="Anticipos cobrados" value={importe(resumen.anticipos_mes)} />
-          <Stat label="Saldos cobrados" value={importe(resumen.saldos_mes)} />
-        </Row>
-        <Row>
           <Stat label="Cobertura de gastos" value={porcentaje(resumen.cobertura_gastos_pct)} />
           <Stat label="Variación de cobros" value={porcentaje(resumen.variacion_cobros_pct)} detail="Frente al mes anterior" />
         </Row>
-        <Advertencias advertencias={datos.advertencias || []} ventas={datos.ventas_sin_importes} />
+        <Advertencias advertencias={datos.advertencias || []} />
         <Card>
           <SectionTitle>Evolución mensual</SectionTitle>
           <Text style={sharedStyles.caption}>Cobros y gastos · últimos seis meses</Text>
@@ -229,7 +224,7 @@ export function ReportesScreen() {
           {vigente.lineas.map((linea) => <FilaImporte key={linea.clave} label={linea.concepto} valor={linea.importe} total={linea.tipo === 'total'} />)}
         </Card>
         <Notice message={vigente.alcance} tone="info" />
-        <Advertencias advertencias={vigente.advertencias || []} ventas={vigente.ventas_sin_importes} />
+        <Advertencias advertencias={vigente.advertencias || []} />
         {vigente.pendientes ? <Text style={sharedStyles.caption}>{vigente.pendientes}</Text> : null}
         {vigente.inicio_historial_gastos ? <Text style={sharedStyles.caption}>Historial de gastos disponible desde {nombreMes(vigente.inicio_historial_gastos.slice(0, 7))}.</Text> : null}
       </> : null}

@@ -1,6 +1,6 @@
 # Scripts SQL de la aplicación móvil
 
-Estos archivos instalan el esquema PostgreSQL que utiliza la aplicación. Se generaron a partir de `movil/0001_initial`, incluyendo las nueve tablas, las claves foráneas, los índices y las restricciones actuales. No contienen credenciales ni datos de ejemplo.
+Estos archivos instalan el esquema PostgreSQL que utiliza la aplicación. Se generan con `scripts/exportar-esquema-movil.py` desde el estado final de las migraciones `movil/0001_initial` y `movil/0002_ventas_pago_completo`, incluyendo las nueve tablas, las claves foráneas, los índices y las restricciones actuales. Las ventas se cobran completas. No contienen credenciales ni datos de ejemplo.
 
 ## Ejecución en Neon
 
@@ -13,7 +13,9 @@ Los archivos se ejecutan por separado: `CREATE DATABASE` debe ejecutarse fuera d
 
 Si Neon muestra `Failed transaction: ROLLBACK required`, pulsa **ROLLBACK** o ejecuta `ROLLBACK;` por separado. Después vuelve a ejecutar el archivo actualizado sobre la base vacía seleccionada. El aviso de que se recortará texto en el historial no impide ejecutar la consulta completa.
 
-El script registra `movil/0001_initial` en `django_migrations`, para que Django reconozca esta instalación. Los valores predeterminados, UUID y fechas los proporciona el backend, igual que en la migración original. Las cuentas deben registrarse desde la aplicación para que la contraseña se almacene con el hash adecuado.
+El script registra ambas migraciones en `django_migrations`, para que Django reconozca esta instalación. Los valores predeterminados, UUID y fechas los proporciona el backend. Las cuentas deben registrarse desde la aplicación para que la contraseña se almacene con el hash adecuado.
+
+Para actualizar una instalación existente, ejecuta `python backend/servidor/manage.py migrate movil --database=movil` y después `python scripts/verificar-base-movil.py`. El archivo `02_esquema_aplicacion.sql` se reserva para bases vacías.
 
 En el entorno actual, la base y el esquema ya están instalados. Estos archivos permiten repetir la instalación en otro entorno.
 

@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, type Href } from 'expo-router';
 import { useRef, useState, type ReactNode } from 'react';
@@ -14,8 +15,10 @@ function AuthFrame({ children, registro = false }: { children: ReactNode; regist
     <SafeAreaView edges={registro ? ['left', 'right', 'bottom'] : ['top', 'left', 'right', 'bottom']} style={styles.flex}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
-          <View style={styles.brand}><View style={styles.logo}><Ionicons name="layers-outline" size={28} color="#FFF" /></View><View><Text style={styles.brandTitle}>TU EQUIPO, CONECTADO</Text><Text style={styles.brandSubtitle}>Gestión para empresas de software</Text></View></View>
-          {!registro && <View style={styles.hero}><Text style={styles.heroTitle}>De la idea{ '\n' }a la entrega.</Text><Text style={styles.heroDescription}>Clientes, proyectos y finanzas en el espacio de tu organización.</Text></View>}
+          <View style={styles.brand}>
+            <Image source={require('@/assets/images/logo-meg.png')} style={styles.logo} contentFit="contain" accessible accessibilityLabel="Logo de Proyectos MEG" />
+            <View style={styles.brandCopy}><Text style={styles.brandTitle}>PROYECTOS MEG</Text><Text style={styles.brandSubtitle}>Gestión para empresas de software</Text></View>
+          </View>
           <Card style={styles.loginCard}>{children}</Card>
           <Text style={styles.footer}>CLIENTES · PROYECTOS · FINANZAS</Text>
         </ScrollView>
@@ -115,8 +118,7 @@ export function RegistroScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 }, content: { flexGrow: 1, padding: 24, gap: 28, justifyContent: 'center', width: '100%', maxWidth: 510, alignSelf: 'center' },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 13 }, logo: { width: 53, height: 53, backgroundColor: '#176CF2', borderRadius: 16, alignItems: 'center', justifyContent: 'center' }, brandTitle: { color: '#FFF', fontSize: 12, fontWeight: '800', letterSpacing: 1.2 }, brandSubtitle: { color: '#94ACCB', fontSize: 11, marginTop: 6 },
-  hero: { gap: 14 }, heroTitle: { fontSize: 43, lineHeight: 48, fontWeight: '800', color: '#FFF', letterSpacing: -1.7 }, heroDescription: { fontSize: 14, lineHeight: 23, color: '#A0B6D4', maxWidth: 330 },
+  brand: { alignItems: 'center', gap: 14 }, logo: { width: 80, height: 80, borderRadius: 20 }, brandCopy: { width: '100%', minWidth: 0 }, brandTitle: { color: '#FFF', fontSize: 26, fontWeight: '800', letterSpacing: 0.6, textAlign: 'center' }, brandSubtitle: { color: '#94ACCB', fontSize: 12, lineHeight: 18, marginTop: 6, textAlign: 'center' },
   loginCard: { width: '100%', padding: 24, borderRadius: 23, gap: 15 }, cardIcon: { width: 47, height: 47, borderRadius: 15, backgroundColor: '#EAF2FF', justifyContent: 'center', alignItems: 'center' }, cardTitle: { fontSize: 24, color: colors.ink, fontWeight: '800', letterSpacing: -0.7 }, description: { color: colors.muted, fontSize: 13, lineHeight: 21, marginTop: -5, marginBottom: 4 },
   showPassword: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 7 }, showText: { color: colors.muted, fontSize: 12 }, divider: { textAlign: 'center', fontSize: 12, color: colors.muted, paddingTop: 7 }, footer: { color: '#7891B3', textAlign: 'center', fontSize: 10, letterSpacing: 1.6 },
 });

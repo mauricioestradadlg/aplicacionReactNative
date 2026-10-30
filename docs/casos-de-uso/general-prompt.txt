@@ -1,0 +1,52 @@
+Herramienta: imagegen integrada.
+Referencias: administrador.png, crm.png, desarrollador.png y finanzas.png.
+
+Recompose the FOUR supplied reference images into ONE SINGLE UNIFIED UML use case diagram for the current application PROYECTOS MEG. References 1–4 are the previous separate diagrams of Administrador, CRM, Desarrollador and Finanzas. Use their business scope and visual style as references, but completely reorganize them into ONE system with ALL FOUR actors together. Do NOT make a collage, four panels, four separate boxes, or four separate diagrams.
+
+Use case: infographic-diagram. Deliver one polished high-resolution LANDSCAPE image, ideally 3840 x 2560, white background, crisp academic UML line drawing, navy title, very legible Spanish sans-serif lettering. Content-first, restrained blue/teal/purple accents. NO photos, devices, 3D effects, bullets, flowchart symbols, watermarks or process-sequence arrows.
+
+At the top outside the system boundary show the main title exactly: "PROYECTOS MEG"
+Subtitle exactly: "DIAGRAMA GENERAL DE CASOS DE USO"
+Draw exactly ONE large plain RECTANGULAR UML system boundary in the middle labelled "Sistema Proyectos MEG".
+INSIDE this ONE rectangle draw exactly FIFTEEN horizontal OVAL use cases in ONE well-spaced vertical column. Make each ellipse wide enough for its complete label. The labels below consolidate equivalent details from the four source diagrams, sharing account actions rather than duplicating them.
+OUTSIDE this rectangle place exactly FOUR human stick-figure actors:
+- "Administrador" on the LEFT, near the upper third.
+- "CRM" on the LEFT, near the lower third.
+- "Desarrollador" on the RIGHT, near the upper third.
+- "Finanzas" on the RIGHT, near the lower third.
+Leave ample gutters between the actors and the oval column for associations. Every actor label must be fully outside the rectangle, uncropped, not crossed by lines.
+
+The fifteen exact oval labels in order from top to bottom are:
+1. "Iniciar sesión"
+2. "Gestionar perfil y contraseña"
+3. "Cerrar sesión"
+4. "Configurar organización"
+5. "Aprobar o rechazar solicitudes y asignar roles"
+6. "Consultar y retirar miembros"
+7. "Gestionar clientes y prospectos"
+8. "Registrar ventas cobradas al 100 %"
+9. "Consultar indicadores comerciales"
+10. "Consultar proyectos y avance"
+11. "Capturar requerimientos"
+12. "Actualizar estados en Kanban"
+13. "Consultar indicadores financieros"
+14. "Registrar y actualizar gastos operativos"
+15. "Consultar reportes financieros por periodo"
+Do NOT print the numbers; they only identify the associations below.
+
+Draw the following EXACT UML actor-to-use-case associations with continuous THIN SOLID lines and NO arrowheads:
+- Administrador connects individually to ALL FIFTEEN ovals (1 through 15): 15 lines. This is critical: administrator has access to CRM, projects, finance, organization and account actions.
+- CRM connects individually ONLY to ovals 1, 2, 3, 7, 8 and 9: 6 lines.
+- Desarrollador connects individually ONLY to ovals 1, 2, 3, 10, 11 and 12: 6 lines.
+- Finanzas connects individually ONLY to ovals 1, 2, 3, 13, 14 and 15: 6 lines.
+There are exactly 33 associations total. Every association must visibly start at its actor and end at the edge of the corresponding oval, with no floating endpoints or missing connections. Route the lines through the empty gutters, never across text or through unrelated ovals. Some line crossings are acceptable if clearly distinguishable. Use subdued navy/gray associations for Administrador, blue for CRM, purple for Desarrollador, teal for Finanzas, coordinated with the corresponding actor label color. Use no arrowheads and do not join different actors with a line. No include, extend or actor-generalization arrows. Do not add a fifth actor. Do not connect one use case to another.
+
+Use subtle very pale oval fills to distinguish groups visually, but NOT extra system rectangles: first three account ovals neutral, three organization ovals light navy-blue, three CRM ovals light blue, three project ovals light lavender, three finance ovals light teal.
+
+At the bottom, outside the single system rectangle, include two compact explanatory lines exactly:
+"Clientes: registrar, editar, buscar y filtrar. Proyectos: pendientes, en gestión y avance."
+"Estados: Por hacer · En progreso · Completado. Reportes: Estado de resultados · Balance general · Flujo de efectivo."
+Then a final small line exactly:
+"Las ventas se registran cobradas al 100 % y cada usuario opera sobre su propia organización."
+
+These notes explain the consolidated cases. Preserve complete Spanish spelling and accents. Registration, creating an organization, requesting membership and invitations are outside the current-role scope; do not add them. Do not include advances, installment payments, bank payment processing or PDF export. The result must look like ONE coherent use case diagram, with all FOUR actors surrounding ONE system, not an illustrated requirements list. Accuracy of actor permissions and legibility are more important than decoration.

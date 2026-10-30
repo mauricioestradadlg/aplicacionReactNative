@@ -1,0 +1,13 @@
+Cambio de funcionalidades aplicación React Native:
+
+
+Ayudame aplicar los siguientes cambios en mi aplicacion:
+
+1. Arriba del log in, que apareza el logo y el nombre
+de mi marca "PROYECTOS MEG"
+
+2. En la pantalla de inicio donde dice proyectos, debe decir
+el nombre completo de mi negocio "Proyectos MEG"
+
+3. Quitar la pantalla de cobro de ventas en el modulo de finanzas
+(En la aplicación no se registraran anticipos de las ventas)

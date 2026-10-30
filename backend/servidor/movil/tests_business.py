@@ -52,7 +52,7 @@ class BusinessTests(TestCase):
         self.assertEqual(dashboard['monto_ventas'], '1000.00')
         self.assertEqual([v['nombre'] for v in dashboard['ventas_recientes']], ['Cliente local'])
 
-    def test_cross_company_client_and_payment_writes_are_denied(self):
+    def test_cross_company_client_writes_and_retired_payment_routes_are_denied(self):
         response = self.client.patch(BASE + f'clientes/{self.foreign.id}/', {'nombre': 'Intruso'}, content_type='application/json')
         self.assertEqual(response.status_code, 404)
         response = self.post(f'gestion-ventas/{self.foreign.id}/liquidacion/', {
@@ -60,7 +60,7 @@ class BusinessTests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.foreign.refresh_from_db()
         self.assertEqual(self.foreign.nombre, 'Cliente privado')
-        self.assertIsNone(self.foreign.importe_anticipo)
+        self.assertEqual(self.foreign.monto_venta, Decimal('9000'))
 
     def test_registration_and_sale_validation(self):
         data = {'nombre': 'Persona', 'correo': 'PERSON@example.com', 'telefono': '5512345678', 'comentarios': 'Reunión',
@@ -77,6 +77,9 @@ class BusinessTests(TestCase):
                                    'descripcion_servicio': 'Desarrollo'}, content_type='application/json')
         self.assertEqual(result.status_code, 200, result.content)
         self.assertEqual(result.json()['cliente']['fuente'], 'directo')
+        from .business_common import hoy
+        self.assertEqual(result.json()['cliente']['fecha_venta'], hoy().isoformat())
+        self.assertFalse({'importe_anticipo', 'fecha_anticipo', 'proyecto_liquidado', 'fecha_liquidacion'} & result.json()['cliente'].keys())
         self.assertEqual(self.client.get(BASE + 'proyectos/pendientes/').json()['total'], 1)
 
     def test_client_rejects_organization_override_and_duplicate_email(self):
@@ -137,16 +140,14 @@ class BusinessTests(TestCase):
             self.assertEqual(self.post(route, {'requerimientos': items}).status_code, 400)
             self.assertEqual(item.requerimientos.count(), 0)
 
-    def test_finance_uses_payment_dates_and_excludes_foreign_money(self):
-        local = self.sold(importe_anticipo=Decimal('250'), fecha_anticipo=date(2020, 1, 15),
-                          proyecto_liquidado=True, fecha_liquidacion=date(2020, 2, 15))
-        self.foreign.importe_anticipo = Decimal('9000')
-        self.foreign.fecha_anticipo = date(2020, 1, 15)
+    def test_finance_uses_full_sale_amount_and_excludes_foreign_money(self):
+        local = self.sold(fecha_venta=date(2020, 1, 15))
+        self.foreign.fecha_venta = date(2020, 1, 15)
         self.foreign.save()
         january = self.client.get(BASE + 'finanzas/dashboard/?periodo=2020-01').json()
         february = self.client.get(BASE + 'finanzas/dashboard/?periodo=2020-02').json()
-        self.assertEqual(january['resumen']['cobros_mes'], '250.00')
-        self.assertEqual(february['resumen']['cobros_mes'], '750.00')
+        self.assertEqual(january['resumen']['cobros_mes'], '1000.00')
+        self.assertEqual(february['resumen']['cobros_mes'], '0.00')
         self.assertIsNone(january['resumen']['gastos_mes'])
         self.assertIsNone(january['resumen']['resultado_operativo'])
         report = self.client.get(BASE + 'finanzas/reportes/?periodo=2020-02&tipo=balance-general').json()
@@ -154,23 +155,25 @@ class BusinessTests(TestCase):
         self.assertEqual(lines['cobros_acumulados'], '1000.00')
         self.assertIsNone(lines['efectivo'])
         self.assertIsNone(lines['patrimonio'])
-        self.assertEqual(self.client.patch(BASE + f'clientes/{local.id}/', {'hubo_venta': False}, content_type='application/json').status_code, 400)
+        # Corregir una venta sin requerimientos no exige un flujo de pagos aparte.
+        self.assertEqual(self.client.patch(BASE + f'clientes/{local.id}/', {'hubo_venta': False}, content_type='application/json').status_code, 200)
+        local.refresh_from_db()
+        self.assertIsNone(local.monto_venta)
+        self.assertIsNone(local.fecha_venta)
 
-    def test_finance_validates_payments_without_partial_updates(self):
+    def test_finance_retires_partial_payment_writes_without_changing_sale(self):
         local = self.sold()
         route = f'gestion-ventas/{local.id}/liquidacion/'
-        good = {'importe_total': '1000', 'importe_anticipo': '100', 'fecha_anticipo': '2020-01-15',
-                'proyecto_liquidado': True, 'fecha_liquidacion': '2020-02-15'}
-        for invalid in [{'importe_anticipo': '1001'}, {'fecha_anticipo': '2020-02-30'},
-                        {'fecha_liquidacion': '2020-01-01'}, {'fecha_liquidacion': '2999-01-01'},
-                        {'importe_total': 'NaN'}, {'proyecto_liquidado': 'si'}]:
-            self.assertEqual(self.post(route, {**good, **invalid}).status_code, 400)
+        self.assertEqual(self.client.get(BASE + 'gestion-ventas/').status_code, 404)
+        self.assertEqual(self.post(route, {'importe_total': '1000', 'importe_anticipo': '100',
+                         'fecha_anticipo': '2020-01-15', 'proyecto_liquidado': False}).status_code, 404)
+        for forbidden in [{'importe_anticipo': '100'}, {'fecha_anticipo': '2020-01-15'},
+                          {'fecha_liquidacion': '2020-02-15'}, {'proyecto_liquidado': True}]:
+            self.assertEqual(self.client.patch(BASE + f'clientes/{local.id}/', forbidden,
+                             content_type='application/json').status_code, 400)
             local.refresh_from_db()
-            self.assertIsNone(local.importe_anticipo)
-        self.assertEqual(self.post(route, good).status_code, 200)
-        local.refresh_from_db()
-        self.assertTrue(local.proyecto_liquidado)
-        self.assertEqual(local.importe_anticipo, Decimal('100'))
+            self.assertEqual(local.monto_venta, Decimal('1000'))
+            self.assertEqual(local.fecha_venta, date(2026, 1, 1))
 
     def test_expense_history_is_preserved_and_tenant_scoped(self):
         foreign = GastoOperativo.objects.create(organizacion=self.other, concepto='Gasto ajeno', monto_mensual=Decimal('999'))
@@ -212,7 +215,7 @@ class BusinessTests(TestCase):
         response = self.post('clientes/', {'nombre': 'x' * 66000})
         self.assertEqual(response.status_code, 413)
 
-    def test_crm_to_project_to_collection_and_reports_across_roles(self):
+    def test_crm_to_project_and_full_payment_reports_across_roles(self):
         from .business_common import hoy
         day = hoy().isoformat()
         period = day[:7]
@@ -222,7 +225,7 @@ class BusinessTests(TestCase):
                             'hubo_venta': True, 'monto_venta': '1000.00', 'descripcion_servicio': 'Sistema general'})
         self.assertEqual(created.status_code, 201, created.content)
         item_id = created.json()['cliente']['id']
-        self.assertEqual(self.client.get(BASE + 'gestion-ventas/').status_code, 403)
+        self.assertEqual(self.client.get(BASE + 'finanzas/dashboard/').status_code, 403)
         self.member.rol = 'desarrollador'
         self.member.save()
         self.assertEqual(self.client.get(BASE + 'proyectos/pendientes/').json()['proyectos'][0]['id'], item_id)
@@ -235,18 +238,10 @@ class BusinessTests(TestCase):
         self.member.rol = 'finanzas'
         self.member.save()
         self.assertEqual(self.client.get(BASE + 'clientes/').status_code, 403)
-        self.assertEqual(self.client.get(BASE + 'gestion-ventas/').json()['clientes'][0]['id'], item_id)
-        payment = self.post(f'gestion-ventas/{item_id}/liquidacion/', {'fuente': 'directo', 'importe_total': '1000.00',
-                            'importe_anticipo': '400.00', 'fecha_anticipo': day, 'proyecto_liquidado': False})
-        self.assertEqual(payment.status_code, 200, payment.content)
         self.assertEqual(self.post('finanzas/gastos-operativos/', {'concepto': 'Hosting', 'monto_mensual': '100.00'}).status_code, 201)
         dashboard = self.client.get(BASE + 'finanzas/dashboard/?periodo=' + period).json()
-        self.assertEqual(dashboard['resumen']['cobros_mes'], '400.00')
-        self.assertEqual(dashboard['resumen']['resultado_operativo'], '300.00')
-        payment = self.post(f'gestion-ventas/{item_id}/liquidacion/', {'importe_total': '1000.00',
-                            'importe_anticipo': '400.00', 'fecha_anticipo': day,
-                            'proyecto_liquidado': True, 'fecha_liquidacion': day})
-        self.assertEqual(payment.status_code, 200, payment.content)
+        self.assertEqual(dashboard['resumen']['cobros_mes'], '1000.00')
+        self.assertEqual(dashboard['resumen']['resultado_operativo'], '900.00')
         report = self.client.get(BASE + f'finanzas/reportes/?periodo={period}&tipo=flujo-efectivo').json()
         lines = {line['clave']: line['importe'] for line in report['lineas']}
         self.assertEqual(lines['cobros_operacion'], '1000.00')
@@ -254,6 +249,7 @@ class BusinessTests(TestCase):
         self.member.rol = 'crm'
         self.member.save()
         changed = self.client.patch(BASE + f'clientes/{item_id}/', {'monto_venta': '500'}, content_type='application/json')
-        self.assertEqual(changed.status_code, 400)
-        self.assertEqual(Cliente.objects.get(pk=item_id).monto_venta, Decimal('1000'))
+        self.assertEqual(changed.status_code, 200)
+        self.assertEqual(Cliente.objects.get(pk=item_id).monto_venta, Decimal('500'))
+        self.assertEqual(Cliente.objects.get(pk=item_id).fecha_venta.isoformat(), day)
         self.assertEqual(self.client.patch(BASE + f'clientes/{item_id}/', {'hubo_venta': False}, content_type='application/json').status_code, 400)

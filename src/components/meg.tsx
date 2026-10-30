@@ -10,7 +10,7 @@ export const sharedStyles = StyleSheet.create({
 });
 
 export function Screen({ title, subtitle, children, refreshing = false, onRefresh, scroll = true }: { title: string; subtitle?: string; children: ReactNode; refreshing?: boolean; onRefresh?: () => void; scroll?: boolean }) {
-  const heading = <View style={styles.heading}><Text style={styles.eyebrow}>PROYECTOS · TU EQUIPO, CONECTADO</Text><Text accessibilityRole="header" style={styles.headingTitle}>{title}</Text>{subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}</View>;
+  const heading = <View style={styles.heading}><Text style={styles.eyebrow}>PROYECTOS MEG · TU EQUIPO, CONECTADO</Text><Text accessibilityRole="header" style={styles.headingTitle}>{title}</Text>{subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}</View>;
   return <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.safe}><KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={95}>
     {scroll ? <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} /> : undefined}>{heading}{children}<Text style={styles.footer}>Tu equipo, en movimiento.</Text></ScrollView> : <View style={[styles.content, styles.flex]}>{heading}{children}</View>}
   </KeyboardAvoidingView></SafeAreaView>;

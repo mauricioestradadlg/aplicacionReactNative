@@ -243,7 +243,7 @@ test('native sessions use SecureStore and explicit Bearer while omitting cookies
   await api.guardarToken('native-secret-token');
   assert.equal(storage.get('gestion.movil.sesion'), 'native-secret-token');
   await api.restaurarToken();
-  await api.peticionSistema('gestion-ventas/id/liquidacion/', { metodo: 'POST', datos: { fuente: 'directo' } });
+  await api.peticionSistema('finanzas/gastos-operativos/', { metodo: 'POST', datos: { concepto: 'Hosting', monto_mensual: '100.00' } });
   assert.equal(api.hayToken(), true);
   assert.equal(requests.length, 1);
   assert.equal(requests[0].headers.Authorization, 'Bearer native-secret-token');

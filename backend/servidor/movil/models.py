@@ -84,10 +84,6 @@ class Cliente(models.Model):
     monto_venta = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     descripcion_servicio = models.CharField(max_length=2000, blank=True)
     fecha_venta = models.DateField(null=True, blank=True)
-    importe_anticipo = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    fecha_anticipo = models.DateField(null=True, blank=True)
-    proyecto_liquidado = models.BooleanField(default=False)
-    fecha_liquidacion = models.DateField(null=True, blank=True)
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
@@ -95,9 +91,7 @@ class Cliente(models.Model):
         constraints = [
             models.UniqueConstraint(Lower("correo"), "organizacion", name="movil_cliente_correo_organizacion_unico"),
             models.CheckConstraint(condition=Q(monto_venta__isnull=True) | Q(monto_venta__gt=0), name="movil_monto_venta_positivo"),
-            models.CheckConstraint(condition=Q(importe_anticipo__isnull=True) | (Q(importe_anticipo__gte=0) & Q(importe_anticipo__lte=models.F("monto_venta"))), name="movil_anticipo_valido"),
             models.CheckConstraint(condition=~Q(hubo_venta=True) | Q(monto_venta__isnull=False), name="movil_venta_tiene_importe"),
-            models.CheckConstraint(condition=Q(proyecto_liquidado=False) | Q(hubo_venta=True, fecha_liquidacion__isnull=False), name="movil_liquidacion_coherente"),
         ]
         indexes = [models.Index(fields=["organizacion", "hubo_venta", "creado_en"])]
 

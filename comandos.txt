@@ -1,4 +1,5 @@
 - cd aplicacion
 - npm run android
+- npm run android:limpio # abrir en Expo Go con cache limpia si Android muestra una version anterior
 - npm run ios # you need to use macOS to build the iOS project - use the Expo app if you need todo iOS development without a Mac
 - npm run web
